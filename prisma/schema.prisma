@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String          @unique
+  ownedOrg       Organization?   @relation("OrgOwner")
+  memberships    OrgMembership[] // for multi-org support
+  projects       Project[] // use plural and camelCase for consistency
+  reportedIssues Issue[]         @relation("IssueReporter")
+  assignedIssues Issue[]         @relation("IssueAssignee")
+  comments       Comment[]
+}
+
+model Organization {
+  id       Int             @id @default(autoincrement())
+  name     String
+  ownerId  String          @unique
+  owner    User            @relation("OrgOwner", fields: [ownerId], references: [id])
+  projects Project[]
+  members  OrgMembership[]
+}
+
+model OrgMembership {
+  id             Int          @id @default(autoincrement())
+  userId         String
+  organizationId Int
+  role           OrgRole
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId]) // Prevent duplicate memberships
+}
+
+model Project {
+  id             Int          @id @default(autoincrement())
+  name           String
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  issues         Issue[]
+  sprints        Sprint[]
+}
+
+model Issue {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String?
+  status      IssueStatus   @default(TODO)
+  priority    IssuePriority @default(MEDIUM)
+
+  reporterId String
+  reporter   User   @relation("IssueReporter", fields: [reporterId], references: [id])
+
+  assigneeId String?
+  assignee   User?   @relation("IssueAssignee", fields: [assigneeId], references: [id])
+
+  projectId   Int
+  project     Project   @relation(fields: [projectId], references: [id])
+  issueType   IssueType @default(TASK)
+  storyPoints Int?
+  sprintId    Int? // Nullable because issue may or may not be in a sprint
+  sprint      Sprint?   @relation(fields: [sprintId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  comments Comment[]
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([reporterId])
+}
+
+model Sprint {
+  id        Int          @id @default(autoincrement())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  projectId Int
+  project   Project      @relation(fields: [projectId], references: [id])
+  issues    Issue[]
+  status    SprintStatus @default(PLANNED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([projectId, name])
+}
+
+model Comment {
+  id       Int    @id @default(autoincrement())
+  content  String
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  issueId Int
+  issue   Issue @relation(fields: [issueId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum IssueStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum IssueType {
+  TASK
+  BUG
+  STORY
+  EPIC
+}
+
+enum IssuePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MANAGER
+  DEVELOPER
+  VIEWER
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
