@@ -2,11 +2,10 @@
   "name": "main",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "npm run build && npm run start",
+    "dev": "nodemon",
     "watch": "tsc -w"
   },
   "keywords": [],
