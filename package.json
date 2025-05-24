@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
+    "dev": "npm run build && npm run start",
+    "watch": "tsc -w"
   },
   "keywords": [],
   "author": "",
