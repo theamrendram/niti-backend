@@ -1,8 +1,10 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import errorHandler from "./middleware/error.middleware";
+import authRoute from "./routes/auth.route";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -16,6 +18,8 @@ app.use(
 app.get("/", (req, res) => {
   res.send("this is homepage");
 });
+
+app.use("/auth", authRoute);
 
 app.use(errorHandler);
 
