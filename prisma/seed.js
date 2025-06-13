@@ -8,6 +8,7 @@ async function main() {
       firstName: "Batman",
       lastName: "Wyane",
       email: "bat@man.com",
+      password: "batman@1939"
     },
   });
 

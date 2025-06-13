@@ -12,6 +12,7 @@ model User {
   firstName      String
   lastName       String
   email          String          @unique
+  password       String         @default("batman123")
   ownedOrg       Organization?   @relation("OrgOwner")
   memberships    OrgMembership[]
   reportedIssues Issue[]         @relation("IssueReporter")
